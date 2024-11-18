@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告板</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 8px; margin-bottom: 5px; background: #f1f1f1; }
+        #form { display: flex; }
+        #input { flex: 1; }
+    </style>
+</head>
+<body>
+    <h1>公告板</h1>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="input" autocomplete="off" placeholder="输入消息..." /><button>发送</button>
+    </form>
+    <p>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('logout') }}">登出</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">登录</a> |
+            <a href="{{ url_for('register') }}">注册</a>
+        {% endif %}
+    </p>
+
+    <script>
+        const socket = io();
+
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (input.value) {
+                socket.emit('send message', input.value);
+                input.value = '';
+            }
+        });
+
+        socket.on('receive message', function(msg) {
+            const item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+    </script>
+</body>
+</html>
